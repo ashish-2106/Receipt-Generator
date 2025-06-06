@@ -270,16 +270,15 @@ export default function ReceiptGenerator() {
                 {/* Receipt Content */}
                 <div className="receipt-content print:w-full print:p-0">
                   {/* Single Page Border */}
-                  <div className="border-2 border-black p-6 print:min-h-[98vh] print:max-h-[99vh] print:overflow-hidden">
+                  <div className="a4-receipt border-2 border-black p-4 print:p-4 relative">
                     {/* Header */}
-                    <div className="mb-8">
+                    <div className="mb-6">
                       <div className="flex justify-between items-start mb-6">
                         {/* Left side - Logo and School Name */}
                         <div className="flex items-center space-x-4">
                           <img src="/logo.jpg" alt="LBS School Logo" className="w-24 h-24 object-contain" />
                           <div>
-                            <h1 className="text-2xl font-bold text-blue-800 mb-1">LBS Sr.Sec. School</h1>
-                            <p className="text-sm text-blue-600 font-medium">Estd. 2000</p>
+                            <h1 className="text-3xl font-bold text-blue-800">LBS Sr.Sec. School</h1>
                           </div>
                         </div>
 
@@ -288,7 +287,7 @@ export default function ReceiptGenerator() {
                           <p className="text-sm text-gray-700 font-medium">Bharounda Kalan</p>
                           <p className="text-sm text-gray-700">Jhunjhunu, Rajasthan</p>
                           <p className="text-sm text-gray-700">PIN: 333031</p>
-                          <p className="text-xs text-gray-600 mt-1">Phone: +91-XXXXXXXXXX</p>
+                          <p className="text-xs text-gray-600 mt-1">Phone: +91-9828872632</p>
                         </div>
                       </div>
 
@@ -325,9 +324,11 @@ export default function ReceiptGenerator() {
                         <div>
                           <strong>Father's Name:</strong> {formData.fatherName}
                         </div>
-                        <div>
-                          <strong>Roll No:</strong> {formData.rollNo || "N/A"}
-                        </div>
+                        {formData.rollNo && (
+                          <div>
+                            <strong>Roll No:</strong> {formData.rollNo}
+                          </div>
+                        )}
                         <div>
                           <strong>Academic Session:</strong> {formData.session}
                         </div>
@@ -351,7 +352,7 @@ export default function ReceiptGenerator() {
                         )}
                       </div>
 
-                      <div className="bg-green-50 p-4 rounded border-2 border-green-200 mb-4">
+                      <div className="bg-green-50 p-4 rounded border border-green-200 mb-4">
                         <div className="text-xl font-bold text-green-800 mb-1">
                           Amount Paid: ₹{formData.amount.toLocaleString("en-IN")}
                         </div>
@@ -368,34 +369,58 @@ export default function ReceiptGenerator() {
                       </div>
                     )}
 
-                    <div className="flex-grow"></div>
+                    {/* Spacer to push footer to bottom */}
+                    <div className="flex-grow min-h-[50px]"></div>
 
                     {/* Footer */}
-                    <div className="mt-auto pt-6">
+                    <div className="footer-section mt-auto">
                       <Separator className="mb-6" />
-                      <div className="text-center space-y-2">
-                        <p className="font-semibold text-gray-800">
-                          This is a system generated receipt and does not require signature.
-                        </p>
-                        <p className="text-gray-800">For any queries, please contact the school office.</p>
-                        <p className="text-blue-700 font-medium mt-2">Thank you for your payment!</p>
+                      <div className="text-center">
+                        <p className="mb-2">This is a system generated receipt and does not require signature.</p>
+                        <p className="mb-2">For any queries, please contact the school office.</p>
+                        <p className="text-blue-600">Thank you for your payment!</p>
                       </div>
                     </div>
                   </div>
-                  <style jsx global>{`
-                    @media print {
-                      .receipt-content {
-                        page-break-inside: avoid;
-                        break-inside: avoid;
-                      }
-                    }
-                  `}</style>
                 </div>
               </div>
             </div>
           )}
         </div>
       </div>
+      <style jsx global>{`
+        @media print {
+          @page {
+            size: A4;
+            margin: 10mm;
+          }
+          
+          body {
+            margin: 0;
+            padding: 0;
+          }
+          
+          .a4-receipt {
+            width: 210mm;
+            max-width: 210mm;
+            height: 297mm;
+            max-height: 297mm;
+            margin: 0;
+            padding: 15mm;
+            box-sizing: border-box;
+            position: relative;
+            page-break-after: always;
+            overflow: hidden;
+          }
+          
+          .footer-section {
+            position: absolute;
+            bottom: 15mm;
+            left: 15mm;
+            right: 15mm;
+          }
+        }
+      `}</style>
     </div>
   )
 }
