@@ -1,6 +1,18 @@
 "use client"
 
 import { useState } from "react"
+import { useAuth } from "./auth-provider"
+import LoginForm from "./login-form"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { LogOutIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -9,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
 import { PrinterIcon } from "lucide-react"
+import Image from "next/image"
 
 interface ReceiptData {
   receiptNo: string
@@ -26,6 +39,7 @@ interface ReceiptData {
 }
 
 export default function ReceiptGenerator() {
+  const { user, loading, logout } = useAuth()
   const [formData, setFormData] = useState<ReceiptData>({
     receiptNo: `RCP${Date.now().toString().slice(-6)}`,
     studentName: "",
@@ -64,7 +78,7 @@ export default function ReceiptGenerator() {
 
   const resetForm = () => {
     setFormData({
-      receiptNo: `RCP${Date.now().toString().slice(-6)}`,
+      receiptNo: `LBS${Date.now().toString().slice(-6)}`,
       studentName: "",
       fatherName: "",
       studentClass: "",
@@ -80,12 +94,52 @@ export default function ReceiptGenerator() {
     setShowReceipt(false)
   }
 
+  const handleLogout = async () => {
+    await logout()
+    setShowReceipt(false)
+    resetForm()
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-800 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return <LoginForm onAuthSuccess={() => { }} />
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8 print:hidden">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">LBS School Fee Receipt Generator</h1>
-          <p className="text-gray-600">Generate official fee receipts for students</p>
+        {/* Header with user profile dropdown */}
+        <div className="flex justify-between items-center mb-8 print:hidden">
+          <div className="flex items-center space-x-4">
+            <img src="/logo.png" alt="LBS School Logo" className="w-24 h-24 object-contain" />
+            <h1 className="text-3xl font-bold text-blue-800">Receipt Generator</h1>
+          </div>
+          <div className="flex items-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Avatar className="cursor-pointer border">
+                  <AvatarFallback>{user.email?.[0]?.toUpperCase() || "U"}</AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel className="max-w-[180px] truncate">{user.email}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                  <LogOutIcon className="mr-2 h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -276,7 +330,7 @@ export default function ReceiptGenerator() {
                       <div className="flex justify-between items-start mb-6">
                         {/* Left side - Logo and School Name */}
                         <div className="flex items-center space-x-4">
-                          <img src="/logo.jpg" alt="LBS School Logo" className="w-24 h-24 object-contain" />
+                          <img src="/logo.png" alt="LBS School Logo" className="w-24 h-24 object-contain" />
                           <div>
                             <h1 className="text-3xl font-bold text-blue-800">LBS Sr.Sec. School</h1>
                           </div>
