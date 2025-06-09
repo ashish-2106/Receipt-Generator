@@ -45,7 +45,7 @@ export default function ReceiptGenerator() {
   const { user, loading, logout } = useAuth()
   const [activeTab, setActiveTab] = useState("generate")
   const [formData, setFormData] = useState<FormData>({
-    receiptNo: `RCP${Date.now().toString().slice(-6)}`,
+    receiptNo: `LBS${Date.now().toString().slice(-6)}`,
     studentName: "",
     fatherName: "",
     studentClass: "",
