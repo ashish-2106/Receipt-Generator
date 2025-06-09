@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PrinterIcon, Plus, History, Save, LogOutIcon } from "lucide-react"
+import toast from "react-hot-toast"
 
 interface FormData {
   receiptNo: string
@@ -44,7 +45,7 @@ export default function ReceiptGenerator() {
   const { user, loading, logout } = useAuth()
   const [activeTab, setActiveTab] = useState("generate")
   const [formData, setFormData] = useState<FormData>({
-    receiptNo: `LBS${Date.now().toString().slice(-6)}`,
+    receiptNo: `RCP${Date.now().toString().slice(-6)}`,
     studentName: "",
     fatherName: "",
     studentClass: "",
@@ -75,7 +76,7 @@ export default function ReceiptGenerator() {
 
   const generateReceipt = async () => {
     if (!formData.studentName || !formData.fatherName || !formData.studentClass || !formData.amount) {
-      alert("Please fill in all required fields")
+      toast.error("Please fill in all required fields")
       return
     }
 
@@ -84,57 +85,408 @@ export default function ReceiptGenerator() {
 
       if (editingReceipt) {
         // Update existing receipt
-        await updateReceiptMutation({
-          id: editingReceipt._id,
-          receiptNo: formData.receiptNo,
-          studentName: formData.studentName,
-          fatherName: formData.fatherName,
-          studentClass: formData.studentClass,
-          rollNo: formData.rollNo || undefined,
-          session: formData.session,
-          feeType: formData.feeType,
-          amount: formData.amount,
-          paymentMode: formData.paymentMode,
-          transactionId: formData.transactionId || undefined,
-          remarks: formData.remarks || undefined,
-          date: formData.date,
-        })
-        alert("Receipt updated successfully!")
+
+        await toast.promise(
+          updateReceiptMutation({
+            id: editingReceipt._id,
+            receiptNo: formData.receiptNo,
+            studentName: formData.studentName,
+            fatherName: formData.fatherName,
+            studentClass: formData.studentClass,
+            rollNo: formData.rollNo || undefined,
+            session: formData.session,
+            feeType: formData.feeType,
+            amount: formData.amount,
+            paymentMode: formData.paymentMode,
+            transactionId: formData.transactionId || undefined,
+            remarks: formData.remarks || undefined,
+            date: formData.date,
+          }),
+          {
+            loading: "Updating receipt...",
+            success: "Receipt updated successfully!",
+            error: "Failed to update receipt. Please try again.",
+          }
+        )
       } else {
         // Create new receipt
-        await createReceiptMutation({
-          receiptNo: formData.receiptNo,
-          studentName: formData.studentName,
-          fatherName: formData.fatherName,
-          studentClass: formData.studentClass,
-          rollNo: formData.rollNo || undefined,
-          session: formData.session,
-          feeType: formData.feeType,
-          amount: formData.amount,
-          paymentMode: formData.paymentMode,
-          transactionId: formData.transactionId || undefined,
-          remarks: formData.remarks || undefined,
-          date: formData.date,
-          createdBy: user?.email || "",
-        })
-        alert("Receipt saved successfully!")
+
+        await toast.promise(
+          createReceiptMutation({
+            receiptNo: formData.receiptNo,
+            studentName: formData.studentName,
+            fatherName: formData.fatherName,
+            studentClass: formData.studentClass,
+            rollNo: formData.rollNo || undefined,
+            session: formData.session,
+            feeType: formData.feeType,
+            amount: formData.amount,
+            paymentMode: formData.paymentMode,
+            transactionId: formData.transactionId || undefined,
+            remarks: formData.remarks || undefined,
+            date: formData.date,
+            createdBy: user?.email || "",
+          }),
+          {
+            loading: "Saving receipt...",
+            success: "Receipt saved successfully!",
+            error: "Error saving receipt. Please try again.",
+          }
+        )
       }
 
       setShowReceipt(true)
     } catch (error) {
       console.error("Error saving receipt:", error)
-      alert("Error saving receipt. Please try again.")
+      toast.error("Error saving receipt. Please try again.")
     } finally {
       setSaving(false)
     }
   }
 
   const printReceipt = () => {
-  setTimeout(() => {
-    window.print()
-  }, 200)
-}
+    // Create a new window for printing
+    const printWindow = window.open("", "_blank")
+    if (!printWindow) {
+      toast.error("Please allow popups to print the receipt")
+      return
+    }
 
+    // Get the receipt content
+    const receiptContent = document.querySelector(".receipt-content")?.innerHTML
+
+    if (!receiptContent) {
+      toast.error("Receipt content not found")
+      return
+    }
+
+    // Create the print HTML
+    const printHTML = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Receipt - ${formData.receiptNo}</title>
+          <style>
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+              -webkit-print-color-adjust: exact;
+              color-adjust: exact;
+              print-color-adjust: exact;
+            }
+            
+            body {
+              font-family: system-ui, -apple-system, sans-serif;
+              background: white;
+              color: black;
+              font-size: 12pt;
+              line-height: 1.4;
+            }
+            
+            .receipt-content {
+              width: 100%;
+              margin: 0;
+              padding: 0;
+            }
+            
+            .a4-receipt {
+              width: 100%;
+              padding: 20px;
+              border: 2px solid black;
+              position: relative;
+              background: white;
+            }
+            
+            .flex {
+              display: flex;
+            }
+            
+            .justify-between {
+              justify-content: space-between;
+            }
+            
+            .items-start {
+              align-items: flex-start;
+            }
+            
+            .items-center {
+              align-items: center;
+            }
+            
+            .space-x-4 > * + * {
+              margin-left: 1rem;
+            }
+            
+            .mb-6 {
+              margin-bottom: 1.5rem;
+            }
+            
+            .mb-4 {
+              margin-bottom: 1rem;
+            }
+            
+            .mb-3 {
+              margin-bottom: 0.75rem;
+            }
+            
+            .mb-2 {
+              margin-bottom: 0.5rem;
+            }
+            
+            .mb-1 {
+              margin-bottom: 0.25rem;
+            }
+            
+            .mt-1 {
+              margin-top: 0.25rem;
+            }
+            
+            .mt-2 {
+              margin-top: 0.5rem;
+            }
+            
+            .mt-auto {
+              margin-top: auto;
+            }
+            
+            .p-3 {
+              padding: 0.75rem;
+            }
+            
+            .p-4 {
+              padding: 1rem;
+            }
+            
+            .px-6 {
+              padding-left: 1.5rem;
+              padding-right: 1.5rem;
+            }
+            
+            .py-3 {
+              padding-top: 0.75rem;
+              padding-bottom: 0.75rem;
+            }
+            
+            .pb-1 {
+              padding-bottom: 0.25rem;
+            }
+            
+            .text-3xl {
+              font-size: 1.875rem;
+              line-height: 2.25rem;
+            }
+            
+            .text-xl {
+              font-size: 1.25rem;
+              line-height: 1.75rem;
+            }
+            
+            .text-lg {
+              font-size: 1.125rem;
+              line-height: 1.75rem;
+            }
+            
+            .text-sm {
+              font-size: 0.875rem;
+              line-height: 1.25rem;
+            }
+            
+            .text-xs {
+              font-size: 0.75rem;
+              line-height: 1rem;
+            }
+            
+            .font-bold {
+              font-weight: 700;
+            }
+            
+            .font-semibold {
+              font-weight: 600;
+            }
+            
+            .font-medium {
+              font-weight: 500;
+            }
+            
+            .text-center {
+              text-align: center;
+            }
+            
+            .text-right {
+              text-align: right;
+            }
+            
+            .text-blue-800 {
+              color: #1e40af;
+            }
+            
+            .text-green-800 {
+              color: #166534;
+            }
+            
+            .text-green-700 {
+              color: #15803d;
+            }
+            
+            .text-blue-600 {
+              color: #2563eb;
+            }
+            
+            .text-gray-700 {
+              color: #374151;
+            }
+            
+            .text-gray-600 {
+              color: #4b5563;
+            }
+            
+            .bg-blue-800 {
+              background-color: #1e40af;
+              color: white;
+            }
+            
+            .bg-gray-50 {
+              background-color: #f9fafb;
+            }
+            
+            .bg-green-50 {
+              background-color: #f0fdf4;
+            }
+            
+            .border {
+              border-width: 1px;
+              border-style: solid;
+            }
+            
+            .border-2 {
+              border-width: 2px;
+            }
+            
+            .border-black {
+              border-color: black;
+            }
+            
+            .border-gray-300 {
+              border-color: #d1d5db;
+            }
+            
+            .border-green-200 {
+              border-color: #bbf7d0;
+            }
+            
+            .border-b {
+              border-bottom-width: 1px;
+              border-bottom-style: solid;
+            }
+            
+            .rounded {
+              border-radius: 0.25rem;
+            }
+            
+            .rounded-lg {
+              border-radius: 0.5rem;
+            }
+            
+            .shadow-md {
+              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            }
+            
+            .grid {
+              display: grid;
+            }
+            
+            .grid-cols-2 {
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            
+            .gap-4 {
+              gap: 1rem;
+            }
+            
+            .gap-x-6 {
+              column-gap: 1.5rem;
+            }
+            
+            .gap-y-3 {
+              row-gap: 0.75rem;
+            }
+            
+            .col-span-2 {
+              grid-column: span 2 / span 2;
+            }
+            
+            .w-24 {
+              width: 6rem;
+            }
+            
+            .h-24 {
+              height: 6rem;
+            }
+            
+            .object-contain {
+              object-fit: contain;
+            }
+            
+            .inline-block {
+              display: inline-block;
+            }
+            
+            .italic {
+              font-style: italic;
+            }
+            
+            .min-h-\\[50px\\] {
+              min-height: 50px;
+            }
+            
+            .flex-grow {
+              flex-grow: 1;
+            }
+            
+            .footer-section {
+              margin-top: 10px;
+            }
+            
+            hr {
+              border: none;
+              border-top: 1px solid #e5e7eb;
+              margin: 1rem 0;
+            }
+            
+            @media print {
+              @page {
+                size: A4;
+                margin: 0.5in;
+              }
+              
+              body {
+                margin: 0;
+                padding: 0;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="receipt-content">
+            ${receiptContent}
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              window.onafterprint = function() {
+                window.close();
+              };
+            };
+          </script>
+        </body>
+      </html>
+    `
+
+    // Write the HTML to the new window
+    printWindow.document.write(printHTML)
+    printWindow.document.close()
+  }
 
   const resetForm = () => {
     setFormData({
@@ -194,7 +546,7 @@ export default function ReceiptGenerator() {
   }
 
   if (!user) {
-    return <LoginForm onAuthSuccess={() => {}} />
+    return <LoginForm onAuthSuccess={() => { }} />
   }
 
   return (
@@ -202,9 +554,12 @@ export default function ReceiptGenerator() {
       <div className="max-w-6xl mx-auto">
         {/* Header with user profile dropdown */}
         <div className="flex justify-between items-center mb-8 print:hidden">
-          <div className="flex items-center space-x-4">
+          <div className="text-center flex-1">
+           <div className="flex items-center space-x-1">
             <img src="/logo.png" alt="LBS School Logo" className="w-24 h-24 object-contain" />
-            <h1 className="text-3xl font-bold text-blue-800">Receipt Generator</h1>
+            <h1 className="text-xl font-bold text-blue-800">Receipt Generator</h1>
+          </div>
+
           </div>
           <div className="flex items-center">
             <DropdownMenu>
@@ -224,7 +579,6 @@ export default function ReceiptGenerator() {
             </DropdownMenu>
           </div>
         </div>
-
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="print:hidden">
@@ -436,7 +790,7 @@ export default function ReceiptGenerator() {
 
               {/* Receipt Preview */}
               {showReceipt && (
-                <div className="lg:col-span-1">
+                <div className="lg:col-span-1 receipt-container">
                   <div className="print:shadow-none print:border-none bg-white border rounded-lg p-6 shadow-lg">
                     <div className="flex justify-between items-center mb-4 print:hidden">
                       <h2 className="text-xl font-semibold">Receipt Preview</h2>
@@ -602,7 +956,7 @@ export default function ReceiptGenerator() {
           
           .footer-section {
             position: absolute;
-            bottom: 15mm;
+            bottom: 10mm;
             left: 15mm;
             right: 15mm;
           }

@@ -10,7 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Eye, EyeOff, School } from "lucide-react"
+import { Eye, EyeOff } from "lucide-react"
+import toast from "react-hot-toast"
 
 interface LoginFormProps {
     onAuthSuccess: () => void
@@ -32,7 +33,7 @@ export default function LoginForm({ onAuthSuccess }: LoginFormProps) {
             await signInWithEmailAndPassword(auth, email, password)
             onAuthSuccess()
         } catch (error: any) {
-            setError("Invalid email or password. Please try again.")
+            toast.error("Invalid email or password. Please try again.")
         } finally {
             setLoading(false)
         }
@@ -51,7 +52,7 @@ export default function LoginForm({ onAuthSuccess }: LoginFormProps) {
             </div>
 
             {/* Right Side – Login Card */}
-            <div className="w-full md:w-1/2 flex items-center justify-center p-6 bg-gradient-to-br from-blue-50 to-indigo-100">
+            <div className="w-full md:w-1/2 flex items-center justify-center p-6 bg-gradient-to-br from-blue-50 to-[#ffd37c]">
                 <Card className="w-full max-w-md bg-white/50 backdrop-blur-md shadow-lg border border-white/30 p-6">
                     <CardHeader className="text-center">
                         <div className="flex justify-center mb-4">

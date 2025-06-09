@@ -4,6 +4,7 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import AuthProvider from "./auth-provider"
 import ConvexClientProvider from "@/components/convex-provider"
+import { Toaster } from 'react-hot-toast'
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -20,6 +21,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        <Toaster
+                    toastOptions={{
+                        style: {
+                            background: '#f7fafc', // Dark theme background
+                            color: '#1a202c',      // Light text color
+                        }
+                    }}
+                    position="top-center"
+                    reverseOrder={true}
+                />
          <ConvexClientProvider>
           <AuthProvider>{children}</AuthProvider>
          </ConvexClientProvider>
